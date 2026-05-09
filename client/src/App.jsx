@@ -14,7 +14,7 @@ function App() {
 
   const [darkMode, setDarkMode] = useState(true);
 
-  // ---------------- FETCH TASKS ----------------
+  // FETCH TASKS
 
   const fetchTasks = async () => {
     try {
@@ -30,7 +30,7 @@ function App() {
     fetchTasks();
   }, []);
 
-  // ---------------- REGISTER ----------------
+  // REGISTER
 
   const register = async () => {
     try {
@@ -50,7 +50,7 @@ function App() {
       if (res.ok) {
         alert("Registration successful");
       } else {
-        alert(data.message || "Registration failed");
+        alert(data.message);
       }
     } catch (err) {
       console.log(err);
@@ -58,7 +58,7 @@ function App() {
     }
   };
 
-  // ---------------- LOGIN ----------------
+  // LOGIN
 
   const login = async () => {
     try {
@@ -79,7 +79,7 @@ function App() {
       if (res.ok) {
         alert("Login successful");
       } else {
-        alert(data.message || "Login failed");
+        alert(data.message);
       }
     } catch (err) {
       console.log(err);
@@ -87,13 +87,10 @@ function App() {
     }
   };
 
-  // ---------------- ADD TASK ----------------
+  // ADD TASK
 
   const addTask = async () => {
-    if (!title) {
-      alert("Please enter task title");
-      return;
-    }
+    if (!title) return;
 
     try {
       const res = await fetch(`${API}/tasks`, {
@@ -116,7 +113,7 @@ function App() {
     }
   };
 
-  // ---------------- DELETE TASK ----------------
+  // DELETE TASK
 
   const deleteTask = async (id) => {
     try {
@@ -130,7 +127,7 @@ function App() {
     }
   };
 
-  // ---------------- COUNTS ----------------
+  // COUNTS
 
   const completed = tasks.filter(
     (task) => task.status === "Completed"
@@ -167,11 +164,7 @@ function App() {
 
         <button
           onClick={() =>
-            alert(
-              `Logged in as: ${
-                email || "guest@gmail.com"
-              }`
-            )
+            alert(email || "Guest User")
           }
         >
           👤 Profile
@@ -185,7 +178,7 @@ function App() {
           ⚙ Settings
         </button>
 
-        {/* PROFILE CARD */}
+        {/* PROFILE */}
 
         <div className="profile-card">
           <h3>Guest User</h3>

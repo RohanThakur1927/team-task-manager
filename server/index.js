@@ -9,6 +9,8 @@ const app = express();
 
 app.use(express.json());
 
+// CORS
+
 app.use(
   cors({
     origin:
@@ -17,15 +19,20 @@ app.use(
   })
 );
 
+// SESSION
+
 app.use(
   session({
     secret: "teamtasksecret",
     resave: false,
     saveUninitialized: false,
+    cookie: {
+      secure: false,
+    },
   })
 );
 
-// ---------------- DATABASE ----------------
+// DATABASE
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -34,7 +41,7 @@ const pool = new Pool({
   },
 });
 
-// ---------------- CREATE TABLES ----------------
+// CREATE USERS TABLE
 
 pool.query(`
 CREATE TABLE IF NOT EXISTS users (
@@ -44,6 +51,8 @@ CREATE TABLE IF NOT EXISTS users (
 )
 `);
 
+// CREATE TASKS TABLE
+
 pool.query(`
 CREATE TABLE IF NOT EXISTS tasks (
   id SERIAL PRIMARY KEY,
@@ -52,18 +61,19 @@ CREATE TABLE IF NOT EXISTS tasks (
 )
 `);
 
-// ---------------- REGISTER ----------------
+// REGISTER
 
 app.post("/register", async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // VALIDATION
+
     if (!email || !password) {
-      return res
-        .status(400)
-        .json({
-          message: "Email and password required",
-        });
+      return res.status(400).json({
+        message:
+          "Please enter email and password",
+      });
     }
 
     // CHECK EXISTING USER
@@ -74,11 +84,9 @@ app.post("/register", async (req, res) => {
     );
 
     if (existingUser.rows.length > 0) {
-      return res
-        .status(400)
-        .json({
-          message: "User already exists",
-        });
+      return res.status(400).json({
+        message: "User already exists",
+      });
     }
 
     // HASH PASSWORD
@@ -98,19 +106,20 @@ app.post("/register", async (req, res) => {
     });
   } catch (err) {
     console.log(err);
-    res
-      .status(500)
-      .json({
-        message: "Registration failed",
-      });
+
+    res.status(500).json({
+      message: "Registration failed",
+    });
   }
 });
 
-// ---------------- LOGIN ----------------
+// LOGIN
 
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
+
+    // FIND USER
 
     const user = await pool.query(
       "SELECT * FROM users WHERE email=$1",
@@ -118,12 +127,12 @@ app.post("/login", async (req, res) => {
     );
 
     if (user.rows.length === 0) {
-      return res
-        .status(400)
-        .json({
-          message: "User not found",
-        });
+      return res.status(400).json({
+        message: "User not found",
+      });
     }
+
+    // CHECK PASSWORD
 
     const validPassword =
       await bcrypt.compare(
@@ -132,30 +141,32 @@ app.post("/login", async (req, res) => {
       );
 
     if (!validPassword) {
-      return res
-        .status(400)
-        .json({
-          message: "Invalid password",
-        });
+      return res.status(400).json({
+        message: "Invalid password",
+      });
     }
 
-    req.session.user = user.rows[0];
+    // SESSION
+
+    req.session.user = {
+      id: user.rows[0].id,
+      email: user.rows[0].email,
+    };
 
     res.json({
       message: "Login successful",
+      user: req.session.user,
     });
   } catch (err) {
     console.log(err);
 
-    res
-      .status(500)
-      .json({
-        message: "Login failed",
-      });
+    res.status(500).json({
+      message: "Login failed",
+    });
   }
 });
 
-// ---------------- GET TASKS ----------------
+// GET TASKS
 
 app.get("/tasks", async (req, res) => {
   try {
@@ -169,7 +180,7 @@ app.get("/tasks", async (req, res) => {
   }
 });
 
-// ---------------- ADD TASK ----------------
+// ADD TASK
 
 app.post("/tasks", async (req, res) => {
   try {
@@ -186,7 +197,7 @@ app.post("/tasks", async (req, res) => {
   }
 });
 
-// ---------------- DELETE TASK ----------------
+// DELETE TASK
 
 app.delete("/tasks/:id", async (req, res) => {
   try {
@@ -205,7 +216,7 @@ app.delete("/tasks/:id", async (req, res) => {
   }
 });
 
-// ---------------- SERVER ----------------
+// SERVER
 
 const PORT = process.env.PORT || 5000;
 
