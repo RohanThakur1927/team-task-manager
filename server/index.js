@@ -1,38 +1,17 @@
 const express = require("express");
 const cors = require("cors");
-const session = require("express-session");
+const dotenv = require("dotenv");
 const bcrypt = require("bcrypt");
 const { Pool } = require("pg");
-require("dotenv").config();
+
+dotenv.config();
 
 const app = express();
 
+app.use(cors());
 app.use(express.json());
 
-// CORS
-
-app.use(
-  cors({
-    origin:
-      "https://team-task-manager-three-delta.vercel.app",
-    credentials: true,
-  })
-);
-
-// SESSION
-
-app.use(
-  session({
-    secret: "teamtasksecret",
-    resave: false,
-    saveUninitialized: false,
-    cookie: {
-      secure: false,
-    },
-  })
-);
-
-// DATABASE
+/* ================= DATABASE CONNECTION ================= */
 
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
@@ -41,104 +20,93 @@ const pool = new Pool({
   },
 });
 
-// CREATE USERS TABLE
+pool.connect()
+  .then(() => console.log("✅ Database connected"))
+  .catch((err) => console.log("❌ Database error:", err));
+
+/* ================= CREATE TABLES ================= */
 
 pool.query(`
-CREATE TABLE IF NOT EXISTS users (
-  id SERIAL PRIMARY KEY,
-  email TEXT UNIQUE NOT NULL,
-  password TEXT NOT NULL
-)
+  CREATE TABLE IF NOT EXISTS users (
+    id SERIAL PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    password VARCHAR(255) NOT NULL
+  );
 `);
-
-// CREATE TASKS TABLE
 
 pool.query(`
-CREATE TABLE IF NOT EXISTS tasks (
-  id SERIAL PRIMARY KEY,
-  title TEXT NOT NULL,
-  status TEXT NOT NULL
-)
+  CREATE TABLE IF NOT EXISTS tasks (
+    id SERIAL PRIMARY KEY,
+    title VARCHAR(255) NOT NULL,
+    status VARCHAR(100) NOT NULL
+  );
 `);
 
-// REGISTER
+/* ================= ROUTES ================= */
+
+app.get("/", (req, res) => {
+  res.send("Backend running successfully");
+});
+
+/* ---------- REGISTER ---------- */
 
 app.post("/register", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // VALIDATION
-
-    if (!email || !password) {
-      return res.status(400).json({
-        message:
-          "Please enter email and password",
-      });
-    }
-
-    // CHECK EXISTING USER
-
-    const existingUser = await pool.query(
+    const userCheck = await pool.query(
       "SELECT * FROM users WHERE email=$1",
       [email]
     );
 
-    if (existingUser.rows.length > 0) {
+    if (userCheck.rows.length > 0) {
       return res.status(400).json({
         message: "User already exists",
       });
     }
 
-    // HASH PASSWORD
-
-    const hashedPassword =
-      await bcrypt.hash(password, 10);
-
-    // INSERT USER
+    const hashedPassword = await bcrypt.hash(password, 10);
 
     await pool.query(
-      "INSERT INTO users (email, password) VALUES ($1, $2)",
+      "INSERT INTO users(email,password) VALUES($1,$2)",
       [email, hashedPassword]
     );
 
     res.json({
       message: "Registration successful",
     });
+
   } catch (err) {
     console.log(err);
-
     res.status(500).json({
       message: "Registration failed",
     });
   }
 });
 
-// LOGIN
+/* ---------- LOGIN ---------- */
 
 app.post("/login", async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // FIND USER
-
-    const user = await pool.query(
+    const result = await pool.query(
       "SELECT * FROM users WHERE email=$1",
       [email]
     );
 
-    if (user.rows.length === 0) {
+    if (result.rows.length === 0) {
       return res.status(400).json({
         message: "User not found",
       });
     }
 
-    // CHECK PASSWORD
+    const user = result.rows[0];
 
-    const validPassword =
-      await bcrypt.compare(
-        password,
-        user.rows[0].password
-      );
+    const validPassword = await bcrypt.compare(
+      password,
+      user.password
+    );
 
     if (!validPassword) {
       return res.status(400).json({
@@ -146,27 +114,22 @@ app.post("/login", async (req, res) => {
       });
     }
 
-    // SESSION
-
-    req.session.user = {
-      id: user.rows[0].id,
-      email: user.rows[0].email,
-    };
-
     res.json({
       message: "Login successful",
-      user: req.session.user,
+      user: {
+        email: user.email,
+      },
     });
+
   } catch (err) {
     console.log(err);
-
     res.status(500).json({
       message: "Login failed",
     });
   }
 });
 
-// GET TASKS
+/* ---------- GET TASKS ---------- */
 
 app.get("/tasks", async (req, res) => {
   try {
@@ -175,53 +138,42 @@ app.get("/tasks", async (req, res) => {
     );
 
     res.json(result.rows);
+
   } catch (err) {
     console.log(err);
+    res.status(500).json({
+      message: "Failed to fetch tasks",
+    });
   }
 });
 
-// ADD TASK
+/* ---------- ADD TASK ---------- */
 
 app.post("/tasks", async (req, res) => {
   try {
     const { title, status } = req.body;
 
-    const result = await pool.query(
-      "INSERT INTO tasks (title, status) VALUES ($1, $2) RETURNING *",
+    await pool.query(
+      "INSERT INTO tasks(title,status) VALUES($1,$2)",
       [title, status]
     );
 
-    res.json(result.rows[0]);
-  } catch (err) {
-    console.log(err);
-  }
-});
-
-// DELETE TASK
-
-app.delete("/tasks/:id", async (req, res) => {
-  try {
-    const { id } = req.params;
-
-    await pool.query(
-      "DELETE FROM tasks WHERE id=$1",
-      [id]
-    );
-
     res.json({
-      message: "Task deleted",
+      message: "Task added successfully",
     });
+
   } catch (err) {
     console.log(err);
+    res.status(500).json({
+      message: "Failed to add task",
+    });
   }
 });
 
-// SERVER
+/* ================= PORT ================= */
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 8080;
 
 app.listen(PORT, () => {
-  console.log(
-    `Server running on port ${PORT}`
-  );
+  console.log(`✅ Server running on port ${PORT}`);
 });
