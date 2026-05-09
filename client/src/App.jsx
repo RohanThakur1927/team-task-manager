@@ -50,7 +50,7 @@ function App() {
       if (res.ok) {
         alert("Registration successful");
       } else {
-        alert(data);
+        alert(data.message || "Registration failed");
       }
     } catch (err) {
       console.log(err);
@@ -79,7 +79,7 @@ function App() {
       if (res.ok) {
         alert("Login successful");
       } else {
-        alert(data);
+        alert(data.message || "Login failed");
       }
     } catch (err) {
       console.log(err);
@@ -90,7 +90,10 @@ function App() {
   // ---------------- ADD TASK ----------------
 
   const addTask = async () => {
-    if (!title) return;
+    if (!title) {
+      alert("Please enter task title");
+      return;
+    }
 
     try {
       const res = await fetch(`${API}/tasks`, {
@@ -127,7 +130,7 @@ function App() {
     }
   };
 
-  // ---------------- DASHBOARD COUNTS ----------------
+  // ---------------- COUNTS ----------------
 
   const completed = tasks.filter(
     (task) => task.status === "Completed"
@@ -146,35 +149,78 @@ function App() {
       {/* SIDEBAR */}
 
       <div className="sidebar">
-        <h1 className="logo">Team Task Manager</h1>
+        <h1 className="logo">
+          Team Task
+          <br />
+          Manager
+        </h1>
 
         <button>📊 Dashboard</button>
-        <button>✅ Saved Tasks</button>
-        <button>👤 Profile</button>
-        <button>⚙ Settings</button>
+
+        <button
+          onClick={() =>
+            alert("Saved Tasks feature coming soon")
+          }
+        >
+          ✅ Saved Tasks
+        </button>
+
+        <button
+          onClick={() =>
+            alert(
+              `Logged in as: ${
+                email || "guest@gmail.com"
+              }`
+            )
+          }
+        >
+          👤 Profile
+        </button>
+
+        <button
+          onClick={() =>
+            setDarkMode(!darkMode)
+          }
+        >
+          ⚙ Settings
+        </button>
+
+        {/* PROFILE CARD */}
 
         <div className="profile-card">
           <h3>Guest User</h3>
-          <p>{email || "guest@gmail.com"}</p>
+
+          <p>
+            {email || "guest@gmail.com"}
+          </p>
 
           <button
-            onClick={() => setDarkMode(!darkMode)}
+            onClick={() =>
+              setDarkMode(!darkMode)
+            }
           >
-            {darkMode ? "☀ Light Mode" : "🌙 Dark Mode"}
+            {darkMode
+              ? "☀ Light Mode"
+              : "🌙 Dark Mode"}
           </button>
         </div>
       </div>
 
-      {/* MAIN CONTENT */}
+      {/* MAIN */}
 
       <div className="main">
-        {/* TOP BAR */}
+        {/* TOPBAR */}
 
         <div className="topbar">
-          <div>
+          <div className="topbar-left">
             <h1>👋 Welcome Back</h1>
-            <p>Manage your tasks efficiently</p>
+
+            <p>
+              Manage your tasks efficiently
+            </p>
           </div>
+
+          {/* AUTH */}
 
           <div className="auth-box">
             <input
@@ -205,7 +251,7 @@ function App() {
           </div>
         </div>
 
-        {/* DASHBOARD */}
+        {/* STATS */}
 
         <div className="stats">
           <div className="card">
@@ -251,8 +297,14 @@ function App() {
               }
             >
               <option>Todo</option>
-              <option>In Progress</option>
-              <option>Completed</option>
+
+              <option>
+                In Progress
+              </option>
+
+              <option>
+                Completed
+              </option>
             </select>
 
             <button onClick={addTask}>
@@ -274,7 +326,9 @@ function App() {
               >
                 <h3>{task.title}</h3>
 
-                <p>Status: {task.status}</p>
+                <p>
+                  Status: {task.status}
+                </p>
 
                 <button
                   className="delete-btn"

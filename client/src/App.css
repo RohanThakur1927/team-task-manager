@@ -6,7 +6,7 @@
 }
 
 body {
-  background: #0f172a;
+  overflow-x: hidden;
 }
 
 .app {
@@ -14,18 +14,14 @@ body {
   display: flex;
 }
 
-/* ---------------- DARK MODE ---------------- */
+/* DARK MODE */
 
 .dark {
-  background: linear-gradient(
-    135deg,
-    #0f172a,
-    #111827
-  );
+  background: linear-gradient(135deg, #0f172a, #111827);
   color: white;
 }
 
-/* ---------------- LIGHT MODE ---------------- */
+/* LIGHT MODE */
 
 .light {
   background: #f3f4f6;
@@ -33,7 +29,7 @@ body {
 }
 
 .light .sidebar {
-  background: white;
+  background: #ffffff;
 }
 
 .light .card,
@@ -41,34 +37,44 @@ body {
 .light .task-card,
 .light .profile-card {
   background: white;
-  color: black;
+  color: #111827;
 }
 
-/* ---------------- SIDEBAR ---------------- */
+.light input,
+.light select {
+  color: black !important;
+}
+
+.light .sidebar button {
+  color: #111827;
+}
+
+/* SIDEBAR */
 
 .sidebar {
   width: 260px;
-  background: rgba(255, 255, 255, 0.05);
-  backdrop-filter: blur(10px);
+  min-height: 100vh;
+  background: rgba(255,255,255,0.05);
   padding: 30px 20px;
   display: flex;
   flex-direction: column;
-  gap: 20px;
 }
 
 .logo {
-  font-size: 32px;
-  margin-bottom: 20px;
+  font-size: 42px;
+  line-height: 1;
+  margin-bottom: 40px;
 }
 
 .sidebar button {
   border: none;
-  padding: 15px;
-  border-radius: 12px;
+  padding: 18px;
+  border-radius: 14px;
   background: rgba(255,255,255,0.08);
   color: white;
-  font-size: 18px;
+  font-size: 20px;
   cursor: pointer;
+  margin-bottom: 18px;
   transition: 0.3s;
 }
 
@@ -76,12 +82,12 @@ body {
   background: #3b82f6;
 }
 
-/* ---------------- PROFILE CARD ---------------- */
+/* PROFILE */
 
 .profile-card {
   margin-top: auto;
   padding: 20px;
-  border-radius: 16px;
+  border-radius: 18px;
   background: rgba(255,255,255,0.08);
   text-align: center;
 }
@@ -91,44 +97,53 @@ body {
 }
 
 .profile-card p {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
-/* ---------------- MAIN ---------------- */
+/* MAIN */
 
 .main {
   flex: 1;
   padding: 40px;
 }
 
-/* ---------------- TOPBAR ---------------- */
+/* TOPBAR */
 
 .topbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 40px;
+  gap: 30px;
+  margin-bottom: 50px;
 }
 
-.topbar h1 {
-  font-size: 50px;
+.topbar-left {
+  max-width: 400px;
 }
 
-.topbar p {
-  margin-top: 10px;
+.topbar-left h1 {
+  font-size: 70px;
+  line-height: 0.9;
+  margin-bottom: 20px;
+}
+
+.topbar-left p {
+  font-size: 20px;
   color: #94a3b8;
 }
 
 .auth-box {
   display: flex;
-  gap: 10px;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
 }
 
 .auth-box input {
-  padding: 14px;
-  width: 220px;
+  padding: 16px;
+  width: 260px;
   border: none;
-  border-radius: 10px;
+  border-radius: 12px;
   background: rgba(255,255,255,0.08);
   color: white;
   font-size: 16px;
@@ -136,15 +151,15 @@ body {
 
 .auth-box button {
   border: none;
-  padding: 14px 20px;
-  border-radius: 10px;
+  padding: 16px 24px;
+  border-radius: 12px;
   background: #3b82f6;
   color: white;
   cursor: pointer;
   font-size: 16px;
 }
 
-/* ---------------- STATS ---------------- */
+/* STATS */
 
 .stats {
   display: grid;
@@ -155,8 +170,8 @@ body {
 
 .card {
   background: rgba(255,255,255,0.08);
-  padding: 30px;
-  border-radius: 20px;
+  padding: 35px;
+  border-radius: 22px;
   text-align: center;
 }
 
@@ -165,21 +180,22 @@ body {
 }
 
 .card p {
-  font-size: 40px;
+  font-size: 50px;
   font-weight: bold;
 }
 
-/* ---------------- TASK FORM ---------------- */
+/* TASK FORM */
 
 .task-form {
   background: rgba(255,255,255,0.08);
-  padding: 30px;
-  border-radius: 20px;
+  padding: 35px;
+  border-radius: 22px;
   margin-bottom: 40px;
 }
 
 .task-form h2 {
-  margin-bottom: 20px;
+  text-align: center;
+  margin-bottom: 30px;
 }
 
 .task-inputs {
@@ -190,9 +206,9 @@ body {
 .task-inputs input,
 .task-inputs select {
   flex: 1;
-  padding: 15px;
+  padding: 18px;
   border: none;
-  border-radius: 12px;
+  border-radius: 14px;
   background: rgba(255,255,255,0.08);
   color: white;
   font-size: 16px;
@@ -200,32 +216,29 @@ body {
 
 .task-inputs button {
   border: none;
-  padding: 15px 25px;
-  border-radius: 12px;
+  padding: 18px 30px;
+  border-radius: 14px;
   background: #3b82f6;
   color: white;
   cursor: pointer;
   font-size: 16px;
 }
 
-/* ---------------- TASKS ---------------- */
+/* TASKS */
 
 .tasks-container h2 {
-  margin-bottom: 20px;
+  margin-bottom: 25px;
 }
 
 .tasks-grid {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(250px, 1fr)
-  );
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 20px;
 }
 
 .task-card {
   background: rgba(255,255,255,0.08);
-  padding: 20px;
+  padding: 25px;
   border-radius: 20px;
 }
 
@@ -234,47 +247,47 @@ body {
 }
 
 .task-card p {
-  margin-bottom: 15px;
+  margin-bottom: 20px;
 }
 
 .delete-btn {
   border: none;
-  padding: 10px 15px;
+  padding: 12px 18px;
   border-radius: 10px;
   background: crimson;
   color: white;
   cursor: pointer;
 }
 
-/* ---------------- RESPONSIVE ---------------- */
+/* RESPONSIVE */
 
-@media (max-width: 1000px) {
-  .stats {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
+@media (max-width: 1200px) {
   .topbar {
     flex-direction: column;
-    gap: 20px;
     align-items: flex-start;
   }
 
-  .task-inputs {
-    flex-direction: column;
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
   }
 }
 
-@media (max-width: 700px) {
+@media (max-width: 800px) {
   .app {
     flex-direction: column;
   }
 
   .sidebar {
     width: 100%;
+    min-height: auto;
   }
 
   .stats {
     grid-template-columns: 1fr;
+  }
+
+  .task-inputs {
+    flex-direction: column;
   }
 
   .auth-box {
@@ -284,5 +297,9 @@ body {
 
   .auth-box input {
     width: 100%;
+  }
+
+  .topbar-left h1 {
+    font-size: 50px;
   }
 }
