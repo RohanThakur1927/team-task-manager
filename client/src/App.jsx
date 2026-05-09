@@ -42,7 +42,7 @@ export default function App() {
   const login = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/login",
+        "team-task-manager.railway.internal",
         {
           email,
           password
@@ -63,7 +63,7 @@ export default function App() {
 
     try {
       await axios.post(
-        "http://localhost:5000/tasks",
+        "team-task-manager.railway.internal/tasks",
         {
           title: task,
           status
@@ -82,7 +82,7 @@ export default function App() {
   const deleteTask = async (id) => {
     try {
       await axios.delete(
-        `http://localhost:5000/tasks/${id}`
+        `team-task-manager.railway.internal/tasks/${id}`
       );
 
       fetchTasks();
@@ -95,7 +95,7 @@ export default function App() {
   const fetchTasks = async () => {
     try {
       const res = await axios.get(
-        "http://localhost:5000/tasks"
+        "team-task-manager.railway.internal/tasks"
       );
 
       setTasks(res.data);
