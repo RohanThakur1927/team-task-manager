@@ -24,7 +24,7 @@ export default function App() {
   const register = async () => {
     try {
       await axios.post(
-        "http://localhost:5000/register",
+        "https://team-task-manager-production-cebb.up.railway.app",
         {
           email,
           password
@@ -42,7 +42,7 @@ export default function App() {
   const login = async () => {
     try {
       await axios.post(
-        "team-task-manager.railway.internal",
+        "https://team-task-manager-production-cebb.up.railway.app",
         {
           email,
           password
@@ -63,7 +63,7 @@ export default function App() {
 
     try {
       await axios.post(
-        "team-task-manager.railway.internal/tasks",
+        "https://team-task-manager-production-cebb.up.railway.app",
         {
           title: task,
           status
@@ -95,7 +95,7 @@ export default function App() {
   const fetchTasks = async () => {
     try {
       const res = await axios.get(
-        "team-task-manager.railway.internal/tasks"
+        "https://team-task-manager-production-cebb.up.railway.app"
       );
 
       setTasks(res.data);
