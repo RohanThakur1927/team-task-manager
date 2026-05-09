@@ -12,8 +12,11 @@ app.use(express.json());
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "https://team-task-manager-three-delta.vercel.app"],
-    credentials: true
+    origin: [
+      "http://localhost:5173",
+      "https://team-task-manager-three-delta.vercel.app",
+    ],
+    credentials: true,
   })
 );
 
@@ -21,182 +24,156 @@ app.use(
   session({
     secret: "secret123",
     resave: false,
-    saveUninitialized: false
+    saveUninitialized: true,
   })
 );
 
-// DATABASE
 const pool = new Pool({
-  connectionString:
-    process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL,
 
   ssl: {
-    rejectUnauthorized: false
-  }
+    rejectUnauthorized: false,
+  },
 });
 
-// ==============================
-// REGISTER
-// ==============================
+
+// ---------------- TEST ROUTE ----------------
+
+app.get("/", (req, res) => {
+  res.send("Team Task Manager Backend Running 🚀");
+});
+
+
+// ---------------- REGISTER ----------------
+
 app.post("/register", async (req, res) => {
   try {
-    const { email, password } =
-      req.body;
+    const { email, password } = req.body;
 
-    const hashedPassword =
-      await bcrypt.hash(password, 10);
-
-    await pool.query(
-      `
-      INSERT INTO users(email, password, role)
-      VALUES($1,$2,$3)
-    `,
-      [
-        email,
-        hashedPassword,
-        "member"
-      ]
+    const checkUser = await pool.query(
+      "SELECT * FROM users WHERE email=$1",
+      [email]
     );
 
-    res.send("User registered");
+    if (checkUser.rows.length > 0) {
+      return res.status(400).json("User already exists");
+    }
+
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    const newUser = await pool.query(
+      "INSERT INTO users (email, password, role) VALUES ($1, $2, $3) RETURNING *",
+      [email, hashedPassword, "member"]
+    );
+
+    res.json(newUser.rows[0]);
+
   } catch (err) {
     console.log(err);
-    res
-      .status(500)
-      .send("Registration failed");
+    res.status(500).json(err.message);
   }
 });
 
-// ==============================
-// LOGIN
-// ==============================
+
+// ---------------- LOGIN ----------------
+
 app.post("/login", async (req, res) => {
   try {
-    const { email, password } =
-      req.body;
+    const { email, password } = req.body;
 
-    const result =
-      await pool.query(
-        `
-      SELECT * FROM users
-      WHERE email=$1
-    `,
-        [email]
-      );
+    const user = await pool.query(
+      "SELECT * FROM users WHERE email=$1",
+      [email]
+    );
 
-    if (result.rows.length === 0) {
-      return res
-        .status(400)
-        .send("User not found");
+    if (user.rows.length === 0) {
+      return res.status(400).json("User not found");
     }
 
-    const user = result.rows[0];
+    const validPassword = await bcrypt.compare(
+      password,
+      user.rows[0].password
+    );
 
-    const valid =
-      await bcrypt.compare(
-        password,
-        user.password
-      );
-
-    if (!valid) {
-      return res
-        .status(400)
-        .send("Wrong password");
+    if (!validPassword) {
+      return res.status(400).json("Invalid password");
     }
 
-    req.session.user = user;
+    req.session.user = user.rows[0];
 
-    res.send("Login successful");
+    res.json({
+      message: "Login successful",
+      user: user.rows[0],
+    });
+
   } catch (err) {
     console.log(err);
-    res.status(500).send("Login failed");
+    res.status(500).json(err.message);
   }
 });
 
-// ==============================
-// CREATE TASK
-// ==============================
+
+// ---------------- GET TASKS ----------------
+
+app.get("/tasks", async (req, res) => {
+  try {
+    const tasks = await pool.query(
+      "SELECT * FROM tasks ORDER BY id DESC"
+    );
+
+    res.json(tasks.rows);
+
+  } catch (err) {
+    console.log(err);
+    res.status(500).json(err.message);
+  }
+});
+
+
+// ---------------- ADD TASK ----------------
+
 app.post("/tasks", async (req, res) => {
   try {
-    const { title, status } =
-      req.body;
+    const { title, status } = req.body;
 
-    await pool.query(
-      `
-      INSERT INTO tasks(title, status)
-      VALUES($1,$2)
-    `,
+    const newTask = await pool.query(
+      "INSERT INTO tasks (title, status) VALUES ($1, $2) RETURNING *",
       [title, status]
     );
 
-    res.send("Task created");
+    res.json(newTask.rows[0]);
+
   } catch (err) {
     console.log(err);
-    res
-      .status(500)
-      .send("Task creation failed");
+    res.status(500).json(err.message);
   }
 });
 
-// ==============================
-// GET TASKS
-// ==============================
-app.get("/tasks", async (req, res) => {
+
+// ---------------- DELETE TASK ----------------
+
+app.delete("/tasks/:id", async (req, res) => {
   try {
-    const result =
-      await pool.query(`
-      SELECT * FROM tasks
-      ORDER BY id DESC
-    `);
+    const { id } = req.params;
 
-    res.json(result.rows);
+    await pool.query(
+      "DELETE FROM tasks WHERE id=$1",
+      [id]
+    );
+
+    res.json("Task deleted");
+
   } catch (err) {
     console.log(err);
-    res
-      .status(500)
-      .send("Failed to fetch tasks");
+    res.status(500).json(err.message);
   }
 });
 
-// ==============================
-// DELETE TASK
-// ==============================
-app.delete(
-  "/tasks/:id",
-  async (req, res) => {
-    try {
-      await pool.query(
-        `
-        DELETE FROM tasks
-        WHERE id=$1
-      `,
-        [req.params.id]
-      );
 
-      res.send("Task deleted");
-    } catch (err) {
-      console.log(err);
-      res
-        .status(500)
-        .send("Delete failed");
-    }
-  }
-);
+// ---------------- SERVER ----------------
 
-// ==============================
-// ROOT ROUTE
-// ==============================
-app.get("/", (req, res) => {
-  res.send(
-    "Team Task Manager Backend Running 🚀"
-  );
-});
+const PORT = process.env.PORT || 5000;
 
-// ==============================
-// START SERVER
-// ==============================
-app.listen(5000, () => {
-  console.log(
-    "Server running on port 5000"
-  );
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });
